@@ -127,6 +127,41 @@ private:
     std::map<int, AcceptedValue> observations_;
 };
 
+struct ProposalResult {
+    bool success = false;
+    ProposalNumber proposal;
+    std::string requested_value;
+    std::string value_sent_in_phase2;
+    std::optional<std::string> chosen_value;
+    std::string explanation;
+};
+
+class Cluster {
+public:
+    explicit Cluster(int node_count) {
+        for (int i = 1; i <= node_count; i++) {
+            acceptors_.emplace_back(i);
+            learners_.emplace_back(i);
+        }
+    }
+
+    int QuorumSize() const { return static_cast<int>(acceptors_.size()) / 2 + 1;}
+
+    ProposalResult RunProposal(int proposer_id, int64_t round, 
+                                const std::string& requested_value, 
+                                const std::set<int>& prepare_drop_targets={},
+                                const std::set<int>& accept_drop_targets={}) {
+        ProposalNumber proposal{round, proposer_id};
+        ProposalResult result;
+        result.proposal = proposal;
+        result.requested_value = requested_value;
+    }
+
+private:
+    std::vector<Acceptor> acceptors_;
+    std::vector<Learner> learners_;
+}
+
 } // namespace paxoscpp
 
 int main() {
